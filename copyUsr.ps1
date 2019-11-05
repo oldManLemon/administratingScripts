@@ -15,33 +15,35 @@ $defaultPassword = ConvertTo-SecureString -String "Start#2019" -AsPlainText -For
 
 $filterForAdSearch = "givenName -like ""*$firstName*"" -and sn -like ""$lastName"""
 
-$user = try{
-     Get-ADUser -Filter $filterForAdSearch -Properties *
-     Write-Host 'User' $usrToCopy 'will now be your template'
-}catch{
+$user = try {
+    Get-ADUser -Filter $filterForAdSearch -Properties "MemberOf"
+    Write-Host 'User' $usrToCopy 'will now be your template'
+}
+catch {
     Write-Host "Please check again, user is not found. 'n Is this user in Stuttgart?"
 }
 
 function checkUsrSam {
     Param ([string]$samName, [string]$fName, [string]$lName, [int]$run)
-   # write-host 'Here is account: '$samName 'Here is first name:' $fName 'Here is last name:' $lName
+    # write-host 'Here is account: '$samName 'Here is first name:' $fName 'Here is last name:' $lName
     
-    $checkSam = try{
-        Get-ADUser -Identity $samName}
-        catch{
-            write-host 'error'
-        }
+    $checkSam = try {
+        Get-ADUser -Identity $samName
+    }
+    catch {
+        write-host 'UserName Generated'
+    }
        
-        if ($checkSam) {
+    if ($checkSam) {
 
-            $firstPart = $fName.Substring(0, $run)
-            $samName = $firstPart + $lName
-            $run = $run + 1
-            #write-host 'Now the new name is ' $samName
-            checkUsrSam -samName $samName -fName $fname -lName $lName -run $run
-        }
+        $firstPart = $fName.Substring(0, $run)
+        $samName = $firstPart + $lName
+        $run = $run + 1
+        #write-host 'Now the new name is ' $samName
+        checkUsrSam -samName $samName -fName $fname -lName $lName -run $run
+    }
    
-    else{
+    else {
         return $samName
     }
 
@@ -64,7 +66,7 @@ IF ($user) {
    
     
 
-    New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -ChangePasswordAtLogon $True -AccountPassword $defaultPassword -Instance $user -WhatIf
+    New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -ChangePasswordAtLogon $True -AccountPassword $defaultPassword -Instance $user 
 
 
 }
