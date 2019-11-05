@@ -10,18 +10,18 @@ $defaultPassword = ConvertTo-SecureString -String "Start#2019" -AsPlainText -For
 # #For testing
 # $firstName = 'Andrew'
 # $lastName = 'Hase'
-
 # Write-Host "You are searching firstname'$firstName'"
 
 $filterForAdSearch = "givenName -like ""*$firstName*"" -and sn -like ""$lastName"""
 
 $user = try {
-    Get-ADUser -Filter $filterForAdSearch -Properties "MemberOf"
+    Get-ADUser -Filter $filterForAdSearch -Properties "UserPrincipalName","MemberOf", "ProfilePath","CN", "City", "c","Country","l","mail","mailNickname","st","State","Department","Description"
     Write-Host 'User' $usrToCopy 'will now be your template'
 }
 catch {
     Write-Host "Please check again, user is not found. 'n Is this user in Stuttgart?"
 }
+$userInstance = Get-ADUser -Identity $user.SamAccountName
 
 function checkUsrSam {
     Param ([string]$samName, [string]$fName, [string]$lName, [int]$run)
@@ -61,13 +61,35 @@ IF ($user) {
     #check to see if user login already exists and create a new version if exists
     #Example Tim Burton is tburton however if that exists it will create tiburton and timburton and so on and so fourth
     $newSamAccountName = checkUsrSam -samName $newSamAccountName -fName $newFirstName -lName $newLastName -run 1
-    Write-Host $newSamAccountName
     
+    $stringMod = $user
+    $frontGarbage, $endPrincipal = $stringMod.UserPrincipalName.Split('@')
+    # Create a new principle name for login in modern Systems
+    $newUsrPrincipalName = $newSamAccountName + '@' + $endPrincipal
+    # $newUsrPrincipalName
+    $s = $stringMod.DistinguishedName
+    # Getting user into the correct OU by generating path
+    $sectionOneGarbage, $sectionTwoGarbage, $sectionThree = $s.Split(',')
+    $newPath
+    $noComma = $sectionThree.Length
+    $i = 1
+    foreach ($section in $sectionThree) {
+    
+        $newPath += $section
+        if ($i -lt $noComma) {
+            $newPath += ','
+        }
+        $i++
+    }
+    $newPath
+
+    
+    # -UserPrincipalName $newUsrPrincipalName
    
     
 
-    New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -ChangePasswordAtLogon $True -AccountPassword $defaultPassword -Instance $user 
-
+    New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Path $newPath -ChangePasswordAtLogon $True -AccountPassword $defaultPassword -GivenName $newFirstName -Surname $newLastName -DisplayName $newLastName', '$newFirstName -UserPrincipalName $newUsrPrincipalName -Instance $userInstance -WhatIf
+    # New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -ChangePasswordAtLogon $True -AccountPassword $defaultPassword -Instance $user -WhatIf
 
 }
 else {
