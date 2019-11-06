@@ -80,31 +80,50 @@ IF ($user) {
         $i++
     }
     
-    $params = @{
-        "Instance"=$userInstance
-        "Name"=$newUsr
-        "DisplayName"= $displayName
-        "GivenName"=$newFirstName
-        "SurName"=$newLastName
-        "AccountPassword"=$defaultPassword
-        "Enabled"=$enabled
-        "ChangePasswordAtLogon"=$true
-        "UserPrincipalName" = $newUsrPrincipalName
-        #Here are the details
-        "c" = $user.c
-        "City" = $user.City
-        "Country" = $user.Country
-        "Department" = $user.Department
-        "Discription" = $user.Discription
+    # $params = @{
+    #     "Instance"=$userInstance
+    #     "DisplayName"= $displayName
+    #     "GivenName"=$newFirstName
+    #     "Surname"=$newLastName
+    #     "AccountPassword"=$defaultPassword
+    #     "Enabled"=$enabled
+    #     "ChangePasswordAtLogon"=$true
+    #     "UserPrincipalName" = $newUsrPrincipalName
+    #     "Path" = $newPath
+    #     #Here are the details, dunno if we want to include these
+    #     "c" = $user.c
+    #     "City" = $user.City
+    #     "Country" = $user.Country
+    #     "Department" = $user.Department
+    #     "Discription" = $user.Discription
 
 
-    }
-    #$newPath
+    # }
 
+    # $usrSettings = ´
+    # -Name $newUsr
+    # -Instance $userInstance
+    # -DisplayName $displayName
+    # -GivenName $newFirstName
+    # -Surname $newLastName
+    # -AccountPassword $defaultPassword
+    # -Enabled $enabled
+    # -ChangePasswordAtLogon $true
+    # -UserPrincipalName $newUsrPrincipalName
+    # -Path $newPath
+    # # -c $user.c
+    # # -City $user.City
+    # # -Country $user.Country
+    # # -Department $user.Department
+    # # -Discription $user.Discription
+    # ´
+    
+
+ 
     
    #Create New User
 
-   #New-ADUser $params -WhatIf
+  New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath
    
     
 
