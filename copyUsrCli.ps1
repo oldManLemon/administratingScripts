@@ -1,5 +1,8 @@
+
+
 #Turn into params
-$usrToCopy = Read-Host -Prompt 'Please enter the user you wish to copy here'
+$usrToCopy = $($args[0]) #Should eventually be a template user
+
 $firstName, $lastName = $usrToCopy.Split(' ')
 $defaultPassword = ConvertTo-SecureString -String "Start#2019" -AsPlainText -Force
 $filterForAdSearch = "givenName -like ""*$firstName*"" -and sn -like ""$lastName"""
@@ -44,7 +47,7 @@ function checkUsrSam {
 
 IF ($user) {
     Write-Host 'User Found to be copied'
-    $newUsr = Read-Host -Prompt 'Enter name of new user'
+    $newUsr = $($args[1])
     $newFirstName, $newLastName = $newUsr.Split()
 
     #Flip the user names to match all other users
@@ -79,50 +82,15 @@ IF ($user) {
         }
         $i++
     }
-    
-    # $params = @{
-    #     "Instance"=$userInstance
-    #     "DisplayName"= $displayName
-    #     "GivenName"=$newFirstName
-    #     "Surname"=$newLastName
-    #     "AccountPassword"=$defaultPassword
-    #     "Enabled"=$enabled
-    #     "ChangePasswordAtLogon"=$true
-    #     "UserPrincipalName" = $newUsrPrincipalName
-    #     "Path" = $newPath
-    #     #Here are the details, dunno if we want to include these
-    #     "c" = $user.c
-    #     "City" = $user.City
-    #     "Country" = $user.Country
-    #     "Department" = $user.Department
-    #     "Discription" = $user.Discription
-
-
-    # }
-
-    # $usrSettings = ´
-    # -Name $newUsr
-    # -Instance $userInstance
-    # -DisplayName $displayName
-    # -GivenName $newFirstName
-    # -Surname $newLastName
-    # -AccountPassword $defaultPassword
-    # -Enabled $enabled
-    # -ChangePasswordAtLogon $true
-    # -UserPrincipalName $newUsrPrincipalName
-    # -Path $newPath
-    # # -c $user.c
-    # # -City $user.City
-    # # -Country $user.Country
-    # # -Department $user.Department
-    # # -Discription $user.Discription
-    # ´
-    
-    
+ 
     #Create New User --This is really long and i want to multiline it or place it in a var but it hasn't gone well
-    New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath
+    try{New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath
     # New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath -Country $user.Country -Department $user.Department
-   
+    }catch{
+        Write-Host 'Creation Failed, breaking operation now'
+        Write-Host 'Most likely Permission denied/ Zugriff verweigert'
+        break
+    }
     #--------Now we have the new user we need to move on to filling out some details and the groups--------#
     
     

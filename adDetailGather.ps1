@@ -1,5 +1,5 @@
 
-$me = Get-ADUser -Identity euser -Properties *
+#$me = Get-ADUser -Identity euser -Properties *
 $potter = Get-ADUser -Identity ahase -Properties "UserPrincipalName","MemberOf", "ProfilePath","CN", "City", "c","Country","l","mail","mailNickname","st","State","Department","Description","Title"
 
 # $me = Get-ADUser -Identity ahase -Properties "UserPrincipalName","MemberOf", "ProfilePath"
