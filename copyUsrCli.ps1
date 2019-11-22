@@ -35,6 +35,7 @@ function checkUsrSam {
         $firstPart = $fName.Substring(0, $run)
         $samName = $firstPart + $lName
         $run = $run + 1
+        #Recursive
         checkUsrSam -samName $samName -fName $fname -lName $lName -run $run
     }
    
@@ -42,6 +43,22 @@ function checkUsrSam {
         return $samName
     }
 }
+function userProfilePathModifier{
+    Param([System.Object] $templateUser, [string]$newUserSam)
+    
+    try{
+        $firstpart,$secondPart=$templateUser.ProfilePath.Split("$")
+        $newSecondpart = '$\'+$newUserSam+'\profile'
+
+        $finalString = $firstpart+$newSecondpart
+        return $finalString	
+    }catch{
+        return Write-Output "There was and Error with the Profile path please check manually"
+    }
+
+}
+
+
 
 IF ($user) {
     Write-Host 'User Found to be copied'
@@ -83,7 +100,7 @@ IF ($user) {
     }
     #Create New User --This is really long and i want to multiline it or place it in a var but it hasn't gone well
     try{
-        New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath
+        New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath -WhatIf
     }catch{
         Write-Host "Couldn't create user, most likely permission error"
         break
@@ -98,7 +115,18 @@ IF ($user) {
     $user.Memberof | % { Add-ADGroupMember $_ $newSamAccountName }
     
     #Add some properties to the new user
-    Set-ADuser -Identity $newSamAccountName -Description $user.Description -Department $user.Department -Country $user.Country -City $user.City -State $user.State -Title $user.Title
+    #IF user has profile path
+    if($user.ProfilePath){
+       
+       $profilePath = userProfilePathModifier -templateUser $user -newUserSam $newSamAccountName
+       $profilePath
+       # Set-ADuser -Identity $newSamAccountName -Description $user.Description -Department $user.Department -Country $user.Country -City $user.City -State $user.State -Title $user.Title -ProfilePath $profilePath -WhatIf
+        Write-Output "Achtung: Benutzerprofilpfad wurde als "$profilePath" hinzugefügt "
+        Write-Output "Attention: User Profilepath was added "$profilePath
+    }else{
+        Set-ADuser -Identity $newSamAccountName -Description $user.Description -Department $user.Department -Country $user.Country -City $user.City -State $user.State -Title $user.Title  -WhatIf
+    }
+   
 
 }
 else {
