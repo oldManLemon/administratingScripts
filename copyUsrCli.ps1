@@ -43,16 +43,17 @@ function checkUsrSam {
         return $samName
     }
 }
-function userProfilePathModifier{
+function userProfilePathModifier {
     Param([System.Object] $templateUser, [string]$newUserSam)
     
-    try{
-        $firstpart,$secondPart=$templateUser.ProfilePath.Split("$")
-        $newSecondpart = '$\'+$newUserSam+'\profile'
+    try {
+        $firstpart, $secondPart = $templateUser.ProfilePath.Split("$")
+        $newSecondpart = '$\' + $newUserSam + '\profile'
 
-        $finalString = $firstpart+$newSecondpart
+        $finalString = $firstpart + $newSecondpart
         return $finalString	
-    }catch{
+    }
+    catch {
         return Write-Output "There was and Error with the Profile path please check manually"
     }
 
@@ -99,32 +100,58 @@ IF ($user) {
         $i++
     }
     #Create New User --This is really long and i want to multiline it or place it in a var but it hasn't gone well
-    try{
+    try {
         New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath -WhatIf
-    }catch{
+    }
+    catch {
         Write-Host "Couldn't create user, most likely permission error"
         break
     }
     
-        # New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath -Country $user.Country -Department $user.Department
+    # New-ADUser -Name $newUsr -SamAccountName $newSamAccountName -Instance $userInstance -DisplayName $displayName -GivenName $newFirstName -Surname $newLastName -AccountPassword $defaultPassword -Enabled $enabled -ChangePasswordAtLogon $true -UserPrincipalName $newUsrPrincipalName -Path $newPath -Country $user.Country -Department $user.Department
    
     #--------Now we have the new user we need to move on to filling out some details and the groups--------#
     
     
     #Mirror all the groups the original account was a member of
-    $user.Memberof | % { Add-ADGroupMember $_ $newSamAccountName }
+    # $user.Memberof | % { Add-ADGroupMember $_ $newSamAccountName  }
+
+    #-------------False postive Groups -----------------------------
+    # CN=Exchange Enterprise Servers,CN=Users,DC=intern,DC=ahs-de,DC=com
+    # CN=dl_berPublic_vz,OU=Security Groups,OU=BER,OU=Stations,OU=x,DC=intern,DC=ahs-de,DC=com
+    # CN=gl_LW-L_berPublic,OU=Security Groups,OU=BER,OU=Stations,OU=x,DC=intern,DC=ahs-de,DC=com
+    # CN=dl_berProjects_vz,OU=Security Groups,OU=BER,OU=Stations,OU=x,DC=intern,DC=ahs-de,DC=com
+
+
+    #Mirror all groups of the original account but do not copy ERP group Memeberships
+    foreach ($group in $user.MemberOf) {
+        if ($group.Contains("ERP")) {
+            Write-Output "DISREGARD! "$group
+        }
+        elseif ($group.Contains("OU=BER")) {
+            #See False postive Groups
+            Write-Output "INCLUDE! " $group
+        }
+        else {
+            Write-Output "INCLUDE! " $group
+        }
+    }
+  
+
+   
     
     #Add some properties to the new user
     #IF user has profile path
-    if($user.ProfilePath){
+    if ($user.ProfilePath) {
        
-       $profilePath = userProfilePathModifier -templateUser $user -newUserSam $newSamAccountName
-       $profilePath
-       # Set-ADuser -Identity $newSamAccountName -Description $user.Description -Department $user.Department -Country $user.Country -City $user.City -State $user.State -Title $user.Title -ProfilePath $profilePath -WhatIf
+        $profilePath = userProfilePathModifier -templateUser $user -newUserSam $newSamAccountName
+        $profilePath
+        #Set-ADuser -Identity $newSamAccountName -Description $user.Description -Department $user.Department -Country $user.Country -City $user.City -State $user.State -Title $user.Title -ProfilePath $profilePath -WhatIf
         Write-Output "Achtung: Benutzerprofilpfad wurde als "$profilePath" hinzugefügt "
         Write-Output "Attention: User Profilepath was added "$profilePath
-    }else{
-        Set-ADuser -Identity $newSamAccountName -Description $user.Description -Department $user.Department -Country $user.Country -City $user.City -State $user.State -Title $user.Title  -WhatIf
+    }
+    else {
+        #Set-ADuser -Identity $newSamAccountName -Description $user.Description -Department $user.Department -Country $user.Country -City $user.City -State $user.State -Title $user.Title -WhatIf
     }
    
 
