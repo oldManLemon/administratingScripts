@@ -119,8 +119,25 @@ IF ($user) {
     # CN=dl_berPublic_vz,OU=Security Groups,OU=BER,OU=Stations,OU=x,DC=intern,DC=ahs-de,DC=com
     # CN=gl_LW-L_berPublic,OU=Security Groups,OU=BER,OU=Stations,OU=x,DC=intern,DC=ahs-de,DC=com
     # CN=dl_berProjects_vz,OU=Security Groups,OU=BER,OU=Stations,OU=x,DC=intern,DC=ahs-de,DC=com
-
-
+    # Get-ADGroup -Identity "CN=Exchange Enterprise Servers,CN=Users,DC=intern,DC=ahs-de,DC=com"
+    # Get-ADGroup -Identity "CN=gl_LW-L_berPublic,OU=Security Groups,OU=BER,OU=Stations,OU=x,DC=intern,DC=ahs-de,DC=com"
+    
+# Get-Mailbox "svc-ardw-ham-kx" | Format-List EmailAddresses | Out-File "addresses.txt"
+    #Get new User Object here to save time
+    try{
+        $newSamAccountName = 'dparton'
+        $newUserInstance = Get-ADUser -Identity $newSamAccountName
+        "found"
+    }catch{
+        Write-Output "New user was not created or found"
+    }
+    function addGroupMemeber{
+        Param([string]$group,[Microsoft.ActiveDirectory.Management.ADAccount]$functionUser)
+        #Adds the group to the memeber
+        $groupObj = Get-ADGroup -Identity $group
+        Add-ADGroupMember -Identity $groupObj -Members $functionUser
+    }
+    	
     #Mirror all groups of the original account but do not copy ERP group Memeberships
     foreach ($group in $user.MemberOf) {
         if ($group.Contains("ERP")) {
@@ -129,12 +146,14 @@ IF ($user) {
         }
         elseif ($group.Contains("OU=BER")) {
             #See False postive Groups
-            Write-Output "INCLUDE! " $group 
-            Add-ADGroupMember -Identity $group -Member $newSamAccountName
+            # Write-Output "INCLUDE! " $group 
+           addGroupMemeber -group $group $newUserInstance
+          
         }
         else {
-            Write-Output "INCLUDE! " $group
-            Add-ADGroupMember -Identity $group -Member $newSamAccountName
+            # Write-Output "INCLUDE! " $group
+            addGroupMemeber -group $group $newUserInstance
+            
         }
     }
   
