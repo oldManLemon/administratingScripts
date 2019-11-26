@@ -59,8 +59,6 @@ function userProfilePathModifier {
 
 }
 
-
-
 IF ($user) {
     Write-Host 'User Found to be copied'
     # $newUsr = Read-Host -Prompt 'Enter name of new user'
@@ -127,13 +125,16 @@ IF ($user) {
     foreach ($group in $user.MemberOf) {
         if ($group.Contains("ERP")) {
             Write-Output "DISREGARD! "$group
+           
         }
         elseif ($group.Contains("OU=BER")) {
             #See False postive Groups
-            Write-Output "INCLUDE! " $group
+            Write-Output "INCLUDE! " $group 
+            Add-ADGroupMember -Identity $group -Member $newSamAccountName
         }
         else {
             Write-Output "INCLUDE! " $group
+            Add-ADGroupMember -Identity $group -Member $newSamAccountName
         }
     }
   
