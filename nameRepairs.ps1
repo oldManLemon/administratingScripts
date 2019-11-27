@@ -3,7 +3,7 @@
 #Ä does not work but should be fine as there are no First names with Ä that I can find and Rarly a Surname Problem.
 
 #Same setup as in previous scipts
-$demoName = "Ä"
+$demoName = "üte"
 
 # $firstName, $lastName = $demoName.Split(' ')
 
@@ -24,4 +24,4 @@ function Convert-Umlaut
   $output
 }
 
-Convert-Umlaut($demoName)
+Convert-Umlaut -name $demoName
